@@ -23,7 +23,8 @@ class FEniCSFunction(torch.autograd.Function):
     def forward(ctx, forward_model, *args):
         numpy_vars = []
         for x, t in zip(args, forward_model.input_templates()):
-            x = x.detach().numpy()
+            if torch.is_tensor(x):
+                x = x.detach().numpy()
             numpy_vars.append(numpy_to_fenics(x, t))
 
         tape = Tape()
@@ -55,5 +56,5 @@ class FEniCS(torch.nn.Module):
 
     def forward(self, *args):
         out = [FEniCSFunction.apply(self.forward_model, *x) for x in zip(*args)]
-        return torch.cat(out)
+        return torch.stack(out)
 
