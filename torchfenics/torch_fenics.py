@@ -55,6 +55,8 @@ class FEniCS(torch.nn.Module):
         self.forward_model = forward_model
 
     def forward(self, *args):
+        if len(args) != len(self.forward_model.input_templates()):
+            raise ValueError('Wrong number of arguments')
         out = [FEniCSFunction.apply(self.forward_model, *x) for x in zip(*args)]
         return torch.stack(out)
 

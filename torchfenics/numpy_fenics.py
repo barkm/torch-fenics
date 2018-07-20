@@ -5,12 +5,17 @@ import numpy as np
 
 def fenics_to_numpy(fenics_var):
     """ Convert FEniCS variable to NumpyArray """
-    if isinstance(fenics_var, Function):
-        return fenics_var.vector().get_local()
-    elif isinstance(fenics_var, Constant):
+    if isinstance(fenics_var, Constant):
         return fenics_var.values()
+    elif isinstance(fenics_var, Function):
+        np_array = fenics_var.vector().get_local()
+        n = fenics_var.function_space().num_sub_spaces()
+        if n != 0:
+            np_array = np.reshape(np_array, (len(np_array) // n, n))
+        return np_array
     elif isinstance(fenics_var, GenericVector):
-        return fenics_var.get_local()
+        ret = fenics_var.get_local()
+        return ret
     elif isinstance(fenics_var, AdjFloat):
         return np.array(float(fenics_var), dtype=np.float_)
     else:
@@ -26,12 +31,16 @@ def numpy_to_fenics(numpy_array, fenics_var_template):
             return Constant(numpy_array)
     elif isinstance(fenics_var_template, Function):
         u = Function(fenics_var_template.function_space())
-        if numpy_array.shape != u.vector().get_local().shape:
+        np_n_sub = numpy_array.shape[-1]
+        np_dim = np.prod(numpy_array.shape)
+        fenics_dim = u.function_space().dim()
+        fenics_n_sub = u.function_space().num_sub_spaces()
+        if np_n_sub != fenics_n_sub and np_dim != fenics_dim:
             raise ValueError('Cannot convert NumpyArray to Function: Wrong shape ' +
                              str(numpy_array.shape) + ' vs ' + str(u.vector().get_local().shape))
         if numpy_array.dtype != np.float_:
             raise ValueError('Wrong type: ' + str(numpy_array.dtype))
-        u.vector().set_local(numpy_array)
+        u.vector().set_local(np.reshape(numpy_array, fenics_dim))
         return u
     elif isinstance(fenics_var_template, AdjFloat):
         return AdjFloat(numpy_array)
