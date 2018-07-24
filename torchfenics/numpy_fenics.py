@@ -35,13 +35,12 @@ def numpy_to_fenics(numpy_array, fenics_var_template):
         function_space = fenics_var_template.function_space()
         fenics_dim = function_space.dim()
         fenics_n_sub = function_space.num_sub_spaces()
-        if np_n_sub != fenics_n_sub and np_dim != fenics_dim:
+        u = Function(function_space)
+        if (fenics_n_sub != 0 and np_n_sub != fenics_n_sub) or np_dim != fenics_dim:
             raise ValueError('Cannot convert NumpyArray to Function: Wrong shape ' +
-                             str(numpy_array.shape) + ' vs ' + str(fenics_dim // fenics_n_sub) +
-                             ', ' + str(fenics_n_sub))
+                             str(numpy_array.shape) + ' vs ' +  str(u.vector().get_local().shape))
         if numpy_array.dtype != np.float_:
             raise ValueError('Wrong type: ' + str(numpy_array.dtype))
-        u = Function(fenics_var_template.function_space())
         u.vector().set_local(np.reshape(numpy_array, fenics_dim))
         return u
     elif isinstance(fenics_var_template, AdjFloat):
