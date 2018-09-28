@@ -3,7 +3,7 @@ import torch
 from fenics import *
 from fenics_adjoint import *
 
-from torchfenics.numpy_fenics import numpy_to_fenics, fenics_to_numpy
+from torch_fenics.numpy_fenics import numpy_to_fenics, fenics_to_numpy
 
 
 from abc import ABC, abstractmethod
