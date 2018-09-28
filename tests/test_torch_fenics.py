@@ -3,15 +3,16 @@ import torch
 from fenics import *
 from fenics_adjoint import *
 
-from torchfenics.torch_fenics import FEniCS, ForwardModel
+from torch_fenics.torch_fenics import FEniCS, FEniCSModel
 
 
-class Squares(ForwardModel):
+class Squares(FEniCSModel):
     def __init__(self):
+        super(Squares, self).__init__()
         mesh = IntervalMesh(4, 0, 1)
         self.V = FunctionSpace(mesh, 'DG', 0)
 
-    def forward(self, f1, f2):
+    def compute(self, f1, f2):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -27,12 +28,13 @@ class Squares(ForwardModel):
         return [Function(self.V), Function(self.V)]
 
 
-class Poisson(ForwardModel):
+class Poisson(FEniCSModel):
     def __init__(self):
+        super(Poisson, self).__init__()
         mesh = UnitSquareMesh(10, 10)
         self.V = FunctionSpace(mesh, 'P', 1)
 
-    def forward(self, f):
+    def compute(self, f):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -61,10 +63,9 @@ def test_squares():
 
 
 def test_poisson():
-    f = torch.tensor([[1]])
+    f = torch.tensor([[1.0]], requires_grad=True).double()
     fenics = FEniCS(Poisson())
-    assert torch.autograd.gradcheck(fenics, (f))
-
+    assert torch.autograd.gradcheck(fenics, (f,))
 
 
 if __name__ == '__main__':
@@ -74,3 +75,4 @@ if __name__ == '__main__':
                                                [1, 2, 2, 1]]).double(), requires_grad=True)
     fenics = FEniCS(Squares())
     print(fenics(x1, x2))
+    assert torch.autograd.gradcheck(fenics, (x1, x2))

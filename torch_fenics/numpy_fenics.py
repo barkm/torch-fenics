@@ -3,48 +3,64 @@ from fenics_adjoint import *
 
 import numpy as np
 
+
 def fenics_to_numpy(fenics_var):
-    """ Convert FEniCS variable to NumpyArray """
+    """Convert FEniCS variable to numpy array"""
     if isinstance(fenics_var, Constant):
         return fenics_var.values()
+
     elif isinstance(fenics_var, Function):
         np_array = fenics_var.vector().get_local()
         n = fenics_var.function_space().num_sub_spaces()
+        # Reshape if function is multi-component
         if n != 0:
             np_array = np.reshape(np_array, (len(np_array) // n, n))
         return np_array
+
     elif isinstance(fenics_var, GenericVector):
-        ret = fenics_var.get_local()
-        return ret
+        return fenics_var.get_local()
+
     elif isinstance(fenics_var, AdjFloat):
         return np.array(float(fenics_var), dtype=np.float_)
+
     else:
         raise ValueError('Cannot convert ' + str(type(fenics_var)))
 
 
 def numpy_to_fenics(numpy_array, fenics_var_template):
-    """ Convert NumpyArray to FEniCS variable """
+    """Convert numpy array to FEniCS variable"""
     if isinstance(fenics_var_template, Constant):
         if numpy_array.shape == (1,):
             return Constant(numpy_array[0])
         else:
             return Constant(numpy_array)
+
     elif isinstance(fenics_var_template, Function):
         np_n_sub = numpy_array.shape[-1]
         np_dim = np.prod(numpy_array.shape)
+
         function_space = fenics_var_template.function_space()
         fenics_dim = function_space.dim()
         fenics_n_sub = function_space.num_sub_spaces()
+
         u = Function(function_space)
         if (fenics_n_sub != 0 and np_n_sub != fenics_n_sub) or np_dim != fenics_dim:
-            raise ValueError('Cannot convert NumpyArray to Function: Wrong shape ' +
-                             str(numpy_array.shape) + ' vs ' +  str(u.vector().get_local().shape))
+            err_msg = 'Cannot convert numpy array to Function:' \
+                      ' Wrong shape {} vs {}'.format(numpy_array.shape, u.vector().get_local().shape)
+            raise ValueError(err_msg)
+
         if numpy_array.dtype != np.float_:
-            raise ValueError('Wrong type: ' + str(numpy_array.dtype))
+            err_msg = 'The numpy array must be of type {}, ' \
+                      'but got {}'.format(np.float_, numpy_array.dtype)
+            raise ValueError(err_msg)
+
         u.vector().set_local(np.reshape(numpy_array, fenics_dim))
         return u
+
     elif isinstance(fenics_var_template, AdjFloat):
         return AdjFloat(numpy_array)
+
     else:
-        raise ValueError('Cannot convert')
+        err_msg = 'Cannot convert numpy array to {}'.format(fenics_var_template)
+        raise ValueError(err_msg)
 
