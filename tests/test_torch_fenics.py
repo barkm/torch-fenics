@@ -15,7 +15,7 @@ class Squares(FEniCSModel):
         mesh = IntervalMesh(4, 0, 1)
         self.V = FunctionSpace(mesh, 'DG', 0)
 
-    def __call__(self, f1, f2):
+    def forward(self, f1, f2):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -37,7 +37,7 @@ class Poisson(FEniCSModel):
         mesh = UnitSquareMesh(10, 10)
         self.V = FunctionSpace(mesh, 'P', 1)
 
-    def __call__(self, f, g):
+    def forward(self, f, g):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -61,7 +61,7 @@ class DoublePoisson(FEniCSModel):
         mesh = UnitIntervalMesh(10)
         self.V = FunctionSpace(mesh, 'P', 1)
 
-    def __call__(self, f1, f2):
+    def forward(self, f1, f2):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -110,7 +110,7 @@ class Stokes(FEniCSModel):
     def input_templates(self):
         return [Constant((0, 0))]
 
-    def __call__(self, f):
+    def forward(self, f):
         u, p = TrialFunctions(self.W)
         v, q = TestFunctions(self.W)
         a = (inner(grad(u), grad(v)) - div(v) * p + q * div(u)) * dx

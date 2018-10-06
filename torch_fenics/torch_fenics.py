@@ -22,11 +22,14 @@ class FEniCSModel(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, *args):
-        """Returns output from the FEniCSModel
+    def forward(self, *args):
+        """Run the forward pass of the FEniCSModel
 
         Input:
             args (tuple): FEniCS variables of same type an order as specified by ForwardModel.input_templates
+
+        Output:
+            outputs (tuple): results from the forward pass
         """
         pass
 
@@ -75,7 +78,7 @@ class FEniCSFunction(torch.autograd.Function):
         set_working_tape(tape)
 
         # Execute forward pass
-        fenics_outputs = fenics_model.__call__(*fenics_inputs)
+        fenics_outputs = fenics_model.forward(*fenics_inputs)
 
         # If single output
         if not isinstance(fenics_outputs, tuple):
