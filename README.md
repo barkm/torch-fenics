@@ -1,7 +1,7 @@
 # Torch-FEniCS
 
-The `torch_fenics` package enables models defined in [FEniCS](fenicsproject.org) to be used as modules in
- [PyTorch](pytroch.org).
+The `torch_fenics` package enables models defined in [FEniCS](https://fenicsproject.org) to be used as modules in
+ [PyTorch](https://pytorch.org/).
 
 ## Install
 
@@ -12,9 +12,9 @@ pip install --process-dependency-links git+https://github.com/pbarkm/torch-fenic
 # Details
 
 FEniCS objects are represented in PyTorch using their corresponding vector representation. For 
-finite element functions this correspond to their corresponding coefficient representation. 
+finite element functions this corresponds to their coefficient representation. 
 
-The package relies on `dolfin-adjoint` in order for the FEniCS module to be compatible with the
+The package relies on [`dolfin-adjoint`](http://www.dolfin-adjoint.org/en/latest/) in order for the FEniCS module to be compatible with the
 automatic differentiation framework in PyTorch
 
 ## Usage
@@ -43,7 +43,7 @@ equation using FEniCS.
 
 First the process of solving the Poisson equation is defined in FEniCS by deriving the `torch_fenics.FEniCSModel` class
 
-```
+```python
 # Import fenics as well as fenics_adjoint
 from fenics import *
 from fenics_adjoint import *
@@ -91,7 +91,7 @@ class Poisson(FEniCSModel):
 
 Through `torch_fenics.FEniCSModule` this FEniCS model can be used as a PyTorch module
 
-```
+```python
 from torch_fenics import FEniCSModule
 
 # Construct the FEniCS model
@@ -106,7 +106,7 @@ the appropriate vector input corresponding to the input templates declared in
 `Poisson.input_templates`. In this case the vector representation of the 
 template `Constant(0)` is simply a scalar. 
 
-```
+```python
 import torch
 
 # Create N sets of input
@@ -122,15 +122,15 @@ The output of the `torch_fenics.FEniCSModule` can now be used to construct some
 functional. Consider summing up the coefficients of the solutions to the Poisson
 equation
 
-```
+```python
 # Construct functional 
 J = u.sum()
 ```
 
-The derivative of this functional with respect to the inputs `f` and `g` can now be
+The derivative of this functional with respect to `f` and `g` can now be
 computed using the `torch.autograd` framework.
 
-```
+```python
 # Execute backward pass
 J.backward() 
 
