@@ -5,6 +5,8 @@ The `torch_fenics` package enables models defined in [FEniCS](https://fenicsproj
 
 ## Install
 
+Install version `2018.1.0` of FEniCS and run
+
 ```bash
 pip install --process-dependency-links git+https://github.com/pbarkm/torch-fenics.git@master
 ```

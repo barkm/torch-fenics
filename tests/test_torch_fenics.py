@@ -53,7 +53,8 @@ class Poisson(FEniCSModel):
         return u_
 
     def input_templates(self):
-        return [Constant(0)]
+        return [Constant(0),
+                Constant(0)]
 
 
 class DoublePoisson(FEniCSModel):
@@ -61,7 +62,7 @@ class DoublePoisson(FEniCSModel):
         super(DoublePoisson, self).__init__()
         mesh = UnitIntervalMesh(10)
         self.V = FunctionSpace(mesh, 'P', 1)
-        bc = DirichletBC(self.V, Constant(0), 'on_boundary')
+        self.bc = DirichletBC(self.V, Constant(0), 'on_boundary')
 
     def forward(self, f1, f2):
         u = TrialFunction(self.V)
