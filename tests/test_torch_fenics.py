@@ -44,6 +44,7 @@ class Poisson(FEniCSModel):
         a = inner(grad(u), grad(v)) * dx
         L = f * v * dx
 
+        # TODO: The DirichletBC block fails if not g is input directly
         bc = DirichletBC(self.V, g, 'on_boundary')
 
         u_ = Function(self.V)
@@ -52,7 +53,7 @@ class Poisson(FEniCSModel):
         return u_
 
     def input_templates(self):
-        return [Constant(0), Constant(0)]
+        return [Constant(0)]
 
 
 class DoublePoisson(FEniCSModel):
@@ -60,6 +61,7 @@ class DoublePoisson(FEniCSModel):
         super(DoublePoisson, self).__init__()
         mesh = UnitIntervalMesh(10)
         self.V = FunctionSpace(mesh, 'P', 1)
+        bc = DirichletBC(self.V, Constant(0), 'on_boundary')
 
     def forward(self, f1, f2):
         u = TrialFunction(self.V)
@@ -69,13 +71,11 @@ class DoublePoisson(FEniCSModel):
         L1 = f1 * v * dx
         L2 = f2 * v * dx
 
-        bc = DirichletBC(self.V, Constant(0), 'on_boundary')
-
         u1 = Function(self.V)
-        solve(a == L1, u1, bc)
+        solve(a == L1, u1, self.bc)
 
         u2 = Function(self.V)
-        solve(a == L2, u2, bc)
+        solve(a == L2, u2, self.bc)
 
         return u1, u2, f1, f2
 
