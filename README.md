@@ -53,8 +53,7 @@ from fenics_adjoint import *
 from torch_fenics import FEniCSModel
 
 class Poisson(FEniCSModel):
-    # Construct variables which can be reused for each
-    # forward pass in the constructor
+    # Construct variables which can be reused for each forward pass in the constructor
     def __init__(self):
         # Call super constructor
         super(Poisson, self).__init__()
@@ -139,4 +138,18 @@ J.backward()
 # Extract gradients
 dJdf = f.grad
 dJdg = g.grad
+```
+
+## Developing
+
+Install FEniCS `2018.1.0` and the dependencies in [`requirements.txt`](requirements.txt)
+
+```
+pip install -r requirements.txt
+```
+
+The unit-tests can then be run as follows
+
+```
+python -m pytest tests
 ```
