@@ -11,7 +11,7 @@ Install version `2018.1.0` of FEniCS and run
 pip install --process-dependency-links git+https://github.com/pbarkm/torch-fenics.git@master
 ```
 
-# Details
+## Details
 
 FEniCS objects are represented in PyTorch using their corresponding vector representation. For 
 finite element functions this corresponds to their coefficient representation. 
@@ -29,8 +29,8 @@ automatic differentiation framework in PyTorch
     2. Implement the `torch_fenics.FEniCSModel.input_templates` method which defines 
     the input types to `torch_fenics.FEniCSModel.forward`.
 
-2. Construct the PyTorch module by giving an instance of your derived 
-`torch_fenics.FEniCSModel` as input when constructing `torch_fenics.FEniCSModule`.
+2. Construct the PyTorch module by giving an instance of derived class
+as input when constructing `torch_fenics.FEniCSModule`.
 
 3. The FEniCS model can then be executed by giving the `torch_fenics.FEniCSModule` the
 appropriate vector representations of the inputs defined in 
