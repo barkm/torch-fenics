@@ -5,10 +5,19 @@ The `torch_fenics` package enables models defined in [FEniCS](https://fenicsproj
 
 ## Install
 
-Install version `2018.1.0` of FEniCS and run
+[Install FEniCS](https://fenicsproject.org/download/) and run
 
 ```bash
-pip install --process-dependency-links git+https://github.com/pbarkm/torch-fenics.git@master
+pip install git+https://github.com/pbarkm/torch-fenics.git@master
+```
+
+A clean install of the package and its dependencies can for example be done with [Conda](https://conda.io/docs/)
+
+```bash
+conda create --name torch-fenics
+conda activate torch-fenics
+conda install -c conda-forge fenics
+pip install git+https://github.com/pbarkm/torch-fenics.git@master
 ```
 
 ## Details
@@ -142,11 +151,7 @@ dJdg = g.grad
 
 ## Developing
 
-Install FEniCS `2018.1.0` and the dependencies in [`requirements.txt`](requirements.txt)
-
-```
-pip install -r requirements.txt
-```
+Install FEniCS and the dependencies in [`requirements.txt`](requirements.txt).
 
 The unit-tests can then be run as follows
 

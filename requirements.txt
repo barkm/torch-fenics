@@ -1,2 +1,3 @@
-torch==0.4.1
+pytest
+torch
 git+https://bitbucket.org/barkm/pyadjoint.git@torch-fenics
