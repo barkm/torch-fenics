@@ -134,7 +134,7 @@ def test_squares():
     f2 = torch.autograd.Variable(torch.tensor([[2, 3, 5, 6],
                                                [1, 2, 2, 1]]).double(), requires_grad=True)
     fenics = FEniCSModule(Squares())
-    assert np.all(fenics(f1, f2) == f1**2 * f2**2)
+    assert np.all((fenics(f1, f2) == f1**2 * f2**2).detach().numpy())
     assert torch.autograd.gradcheck(fenics, (f1, f2))
 
 

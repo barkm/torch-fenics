@@ -9,7 +9,7 @@ def fenics_to_numpy(fenics_var):
     if isinstance(fenics_var, Constant):
         return fenics_var.values()
 
-    elif isinstance(fenics_var, Function):
+    if isinstance(fenics_var, Function):
         np_array = fenics_var.vector().get_local()
         n = fenics_var.function_space().num_sub_spaces()
         # Reshape if function is multi-component
@@ -17,14 +17,13 @@ def fenics_to_numpy(fenics_var):
             np_array = np.reshape(np_array, (len(np_array) // n, n))
         return np_array
 
-    elif isinstance(fenics_var, GenericVector):
+    if isinstance(fenics_var, GenericVector):
         return fenics_var.get_local()
 
-    elif isinstance(fenics_var, AdjFloat):
+    if isinstance(fenics_var, AdjFloat):
         return np.array(float(fenics_var), dtype=np.float_)
 
-    else:
-        raise ValueError('Cannot convert ' + str(type(fenics_var)))
+    raise ValueError('Cannot convert ' + str(type(fenics_var)))
 
 
 def numpy_to_fenics(numpy_array, fenics_var_template):
@@ -35,7 +34,7 @@ def numpy_to_fenics(numpy_array, fenics_var_template):
         else:
             return Constant(numpy_array)
 
-    elif isinstance(fenics_var_template, Function):
+    if isinstance(fenics_var_template, Function):
         np_n_sub = numpy_array.shape[-1]
         np_dim = np.prod(numpy_array.shape)
 
@@ -57,10 +56,9 @@ def numpy_to_fenics(numpy_array, fenics_var_template):
         u.vector().set_local(np.reshape(numpy_array, fenics_dim))
         return u
 
-    elif isinstance(fenics_var_template, AdjFloat):
+    if isinstance(fenics_var_template, AdjFloat):
         return AdjFloat(numpy_array)
 
-    else:
-        err_msg = 'Cannot convert numpy array to {}'.format(fenics_var_template)
-        raise ValueError(err_msg)
+    err_msg = 'Cannot convert numpy array to {}'.format(fenics_var_template)
+    raise ValueError(err_msg)
 
