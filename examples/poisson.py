@@ -42,9 +42,7 @@ class Poisson(FEniCSModel):
 
     def input_templates(self):
         # Declare templates for the inputs to Poisson.forward
-        return [Constant(0),  # source term
-                Constant(0),  # boundary value
-                ]
+        return Constant(0), Constant(0)
 
 
 if __name__ == '__main__':

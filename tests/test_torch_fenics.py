@@ -6,7 +6,7 @@ import numpy as np
 from fenics import *
 from fenics_adjoint import *
 
-from torch_fenics.torch_fenics import FEniCSModule, FEniCSModel
+from torch_fenics import FEniCSModule, FEniCSModel
 
 
 class Squares(FEniCSModel):
@@ -28,7 +28,7 @@ class Squares(FEniCSModel):
         return u_
 
     def input_templates(self):
-        return [Function(self.V), Function(self.V)]
+        return Function(self.V), Function(self.V)
 
 
 class Poisson(FEniCSModel):
@@ -53,8 +53,7 @@ class Poisson(FEniCSModel):
         return u_
 
     def input_templates(self):
-        return [Constant(0),
-                Constant(0)]
+        return Constant(0), Constant(0)
 
 
 class DoublePoisson(FEniCSModel):
@@ -81,7 +80,7 @@ class DoublePoisson(FEniCSModel):
         return u1, u2, f1, f2
 
     def input_templates(self):
-        return [Constant(0), Constant(0)]
+        return Constant(0), Constant(0)
 
 
 class Stokes(FEniCSModel):
@@ -109,7 +108,7 @@ class Stokes(FEniCSModel):
         self.bcs = [noslip_bc, inflow_bc, outlet_bc]
 
     def input_templates(self):
-        return [Constant((0, 0))]
+        return Constant((0, 0))
 
     def forward(self, f):
         u, p = TrialFunctions(self.W)
@@ -133,11 +132,20 @@ def test_squares():
                                                [2, 3, 5, 6]]).double(), requires_grad=True)
     f2 = torch.autograd.Variable(torch.tensor([[2, 3, 5, 6],
                                                [1, 2, 2, 1]]).double(), requires_grad=True)
-    fenics = FEniCSModule(Squares())
+
+    rank = MPI.comm_world.Get_rank()
+    size = MPI.comm_world.Get_size()
+    f1 = f1[:,rank::size]
+    f2 = f2[:,rank::size]
+
+    squares = Squares()
+    fenics = FEniCSModule(squares)
+
     assert np.all((fenics(f1, f2) == f1**2 * f2**2).detach().numpy())
     assert torch.autograd.gradcheck(fenics, (f1, f2))
 
 
+@pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_poisson():
     f = torch.tensor([[1.0]], requires_grad=True).double()
     g = torch.tensor([[0.0]], requires_grad=True).double()
@@ -145,6 +153,7 @@ def test_poisson():
     assert torch.autograd.gradcheck(fenics, (f, g))
 
 
+@pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_doublepoisson():
     f1 = torch.tensor([[1.0]], requires_grad=True).double()
     f2 = torch.tensor([[2.0]], requires_grad=True).double()
@@ -152,12 +161,14 @@ def test_doublepoisson():
     assert torch.autograd.gradcheck(fenics, (f1, f2))
 
 
+@pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_stokes():
     f = torch.tensor([[1.0, 1.0]], requires_grad=True).double()
     fenics = FEniCSModule(Stokes())
     assert torch.autograd.gradcheck(fenics, (f,))
 
 
+@pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_input_type():
     f = np.array([[1.0]])
     g = np.array([[0.0]])
