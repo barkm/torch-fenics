@@ -1,6 +1,6 @@
 # Torch-FEniCS
 
-The `torch_fenics` package enables models defined in [FEniCS](https://fenicsproject.org) to be used as modules in
+The `torch-fenics` package enables models defined in [FEniCS](https://fenicsproject.org) to be used as modules in
  [PyTorch](https://pytorch.org/).
 
 ## Install
@@ -28,39 +28,23 @@ finite element functions this corresponds to their coefficient representation.
 The package relies on [`dolfin-adjoint`](http://www.dolfin-adjoint.org/en/latest/) in order for the FEniCS module to be compatible with the
 automatic differentiation framework in PyTorch
 
-## Usage
-
-1. Define the FEniCS model by deriving from the `torch_fenics.FEniCSModel` class.
-
-    1. Implement the `torch_fenics.FEniCSModel.forward` method such that it executes
-     the desired forward pass defined in FEniCS.
-    
-    2. Implement the `torch_fenics.FEniCSModel.input_templates` method which defines 
-    the input types to `torch_fenics.FEniCSModel.forward`.
-
-2. Construct the PyTorch module by giving an instance of derived class
-as input when constructing `torch_fenics.FEniCSModule`.
-
-3. The FEniCS model can then be executed by giving the `torch_fenics.FEniCSModule` the
-appropriate vector representations of the inputs defined in 
-`torch_fenics.FEniCSModel.input_templates`.  Each input to `torch_fenics.FEniCSModule`
-should be on the form `N x D_1 x D_2 ...` where `N` is the number of sets of inputs such that
-`torch.FEniCSModel.forward` is executed `N` times.
-
 ## Example
 
-The `torch_fenics` package can for example be used to define a PyTorch module which solves the Poisson
+The `torch-fenics` package can for example be used to define a PyTorch module which solves the Poisson
 equation using FEniCS.
 
 First the process of solving the Poisson equation is defined in FEniCS by deriving the `torch_fenics.FEniCSModel` class
 
 ```python
-# Import fenics as well as fenics_adjoint
+# Import fenics and override necessary data structures with fenics_adjoint
 from fenics import *
 from fenics_adjoint import *
 
-from torch_fenics import FEniCSModel
+from torch_fenics import FEniCSModel, FEniCSModule
 
+
+# Declare the FEniCS model corresponding to solving the Poisson equation
+# with variable source term and boundary value
 class Poisson(FEniCSModel):
     # Construct variables which can be reused for each forward pass in the constructor
     def __init__(self):
@@ -94,9 +78,7 @@ class Poisson(FEniCSModel):
 
     def input_templates(self):
         # Declare templates for the inputs to Poisson.forward
-        return [Constant(0),  # source term
-                Constant(0),  # boundary value
-                ]
+        return Constant(0), Constant(0)
 ```
 
 Through `torch_fenics.FEniCSModule` this FEniCS model can be used as a PyTorch module
@@ -151,7 +133,11 @@ dJdg = g.grad
 
 ## Developing
 
-Install FEniCS and the dependencies in [`requirements.txt`](requirements.txt).
+Install FEniCS and install `torch-fenics` in editable mode including test dependencies
+
+```python
+pip install -e .[test]
+```
 
 The unit-tests can then be run as follows
 

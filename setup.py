@@ -7,9 +7,9 @@ setup(name='torch-fenics',
       author='Patrik Barkman',
       author_email='barkm@kth.se',
       packages=['torch_fenics'],
-      install_requires=[
-          'dolfin_adjoint @ git+https://bitbucket.org/barkm/pyadjoint.git@torch-fenics',
-          'torch'],
+      install_requires=['dolfin_adjoint @ git+https://bitbucket.org/barkm/pyadjoint.git@torch-fenics',
+                        'torch'],
+      extras_require={'test': 'pytest'}
       )
 
 
