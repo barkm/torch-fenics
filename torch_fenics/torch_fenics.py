@@ -5,7 +5,7 @@ import fenics_adjoint
 import torch
 import numpy as np
 
-from torch_fenics.numpy_fenics import numpy_to_fenics, fenics_to_numpy
+import torch_fenics.numpy_fenics as numpy_fenics
 
 class FEniCSModel(ABC):
     """Defines a model in FEniCS"""
@@ -50,7 +50,7 @@ class FEniCSModel(ABC):
     def numpy_input_templates(self):
         """Returns tuple of numpy representations of the input templates to FEniCSModel.forward"""
         if self._numpy_input_templates is None:
-            self._numpy_input_templates = [fenics_to_numpy(temp) for temp in self.fenics_input_templates()]
+            self._numpy_input_templates = [numpy_fenics.fenics_to_numpy(temp) for temp in self.fenics_input_templates()]
         return self._numpy_input_templates
 
 
@@ -93,7 +93,7 @@ class FEniCSFunction(torch.autograd.Function):
         for inp, template in zip(args, fenics_model.fenics_input_templates()):
             if torch.is_tensor(inp):
                 inp = inp.detach().numpy()
-            fenics_inputs.append(numpy_to_fenics(inp, template))
+            fenics_inputs.append(numpy_fenics.numpy_to_fenics(inp, template))
         
         # Create tape associated with this forward pass
         tape = fenics_adjoint.Tape()
@@ -112,7 +112,7 @@ class FEniCSFunction(torch.autograd.Function):
         ctx.fenics_outputs = fenics_outputs
 
         # Return tensor representation of outputs
-        return tuple(torch.from_numpy(fenics_to_numpy(fenics_output)) for fenics_output in fenics_outputs)
+        return tuple(torch.from_numpy(numpy_fenics.fenics_to_numpy(fenics_output)) for fenics_output in fenics_outputs)
 
     @staticmethod
     def backward(ctx, *grad_outputs):
@@ -125,7 +125,7 @@ class FEniCSFunction(torch.autograd.Function):
         # Convert gradient of output to a FEniCS variable
         adj_values = []
         for grad_output, fenics_output in zip(grad_outputs, ctx.fenics_outputs):
-            adj_value = numpy_to_fenics(grad_output.numpy(), fenics_output)
+            adj_value = numpy_fenics.numpy_to_fenics(grad_output.numpy(), fenics_output)
             # Special case
             if isinstance(adj_value, (fenics.Function, fenics_adjoint.Function)):
                 adj_value = adj_value.vector()
@@ -142,7 +142,7 @@ class FEniCSFunction(torch.autograd.Function):
                                                            tape=ctx.tape, adj_value=adj_value)
 
             # Convert FEniCS gradients to tensor representation
-            numpy_grads = [g if g is None else torch.from_numpy(fenics_to_numpy(g)) for g in fenics_grads]
+            numpy_grads = [g if g is None else torch.from_numpy(numpy_fenics.fenics_to_numpy(g)) for g in fenics_grads]
             for i, (acc_g, g) in enumerate(zip(accumulated_grads, numpy_grads)):
                 if g is None:
                     continue

@@ -1,10 +1,10 @@
 import pytest
 
-import torch
-import numpy as np
-
 from fenics import *
 from fenics_adjoint import *
+
+import torch
+import numpy as np
 
 from torch_fenics import FEniCSModule, FEniCSModel
 
@@ -44,7 +44,6 @@ class Poisson(FEniCSModel):
         a = inner(grad(u), grad(v)) * dx
         L = f * v * dx
 
-        # TODO: The DirichletBC block fails if not g is input directly
         bc = DirichletBC(self.V, g, 'on_boundary')
 
         u_ = Function(self.V)
