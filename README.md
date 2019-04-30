@@ -132,8 +132,13 @@ dJdg = g.grad
 ```
 
 ## Developing
+Install dependencies
 
-Install FEniCS and install `torch-fenics` in editable mode including test dependencies
+```bash
+conda env create -f environment.yml
+```
+
+Install package in editable mode
 
 ```python
 pip install -e .[test]
@@ -141,6 +146,6 @@ pip install -e .[test]
 
 The unit-tests can then be run as follows
 
-```
+```bash
 python -m pytest tests
 ```
