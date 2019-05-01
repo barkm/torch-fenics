@@ -33,23 +33,22 @@ automatic differentiation framework in PyTorch
 The `torch-fenics` package can for example be used to define a PyTorch module which solves the Poisson
 equation using FEniCS.
 
-First the process of solving the Poisson equation is defined in FEniCS by deriving the `torch_fenics.FEniCSModel` class
+The process of solving the Poisson equation in FEniCS can be specified as a PyTorch module by deriving the `torch_fenics.FEniCSModule` class
 
 ```python
 # Import fenics and override necessary data structures with fenics_adjoint
 from fenics import *
 from fenics_adjoint import *
 
-from torch_fenics import FEniCSModel, FEniCSModule
-
+import torch_fenics
 
 # Declare the FEniCS model corresponding to solving the Poisson equation
 # with variable source term and boundary value
-class Poisson(FEniCSModel):
-    # Construct variables which can be reused for each forward pass in the constructor
+class Poisson(torch_fenics.FEniCSModule):
+    # Construct variables which can be in the constructor
     def __init__(self):
         # Call super constructor
-        super(Poisson, self).__init__()
+        super().__init__()
 
         # Create function space
         mesh = UnitIntervalMesh(20)
@@ -62,7 +61,7 @@ class Poisson(FEniCSModel):
         # Construct bilinear form
         self.a = inner(grad(u), grad(self.v)) * dx
 
-    def forward(self, f, g):
+    def solve(self, f, g):
         # Construct linear form
         L = f * self.v * dx
 
@@ -81,25 +80,14 @@ class Poisson(FEniCSModel):
         return Constant(0), Constant(0)
 ```
 
-Through `torch_fenics.FEniCSModule` this FEniCS model can be used as a PyTorch module
-
-```python
-from torch_fenics import FEniCSModule
-
-# Construct the FEniCS model
-poisson = Poisson()
-
-# Create the PyTorch module
-poisson_module = FEniCSModule(poisson)
-```
-
-The `Poisson.forward` function can now be executed by giving the PyTorch module 
+The `Poisson.solve` function can now be executed by giving the module 
 the appropriate vector input corresponding to the input templates declared in 
 `Poisson.input_templates`. In this case the vector representation of the 
 template `Constant(0)` is simply a scalar. 
 
 ```python
-import torch
+# Construct the FEniCS model
+poisson = Poisson()
 
 # Create N sets of input
 N = 10
@@ -107,12 +95,11 @@ f = torch.rand(N, 1, requires_grad=True, dtype=torch.float64)
 g = torch.rand(N, 1, requires_grad=True, dtype=torch.float64)
 
 # Solve the Poisson equation N times
-u = poisson_module(f, g)
+u = poisson(f, g)
 ```
 
-The output of the `torch_fenics.FEniCSModule` can now be used to construct some 
-functional. Consider summing up the coefficients of the solutions to the Poisson
-equation
+The output of the can now be used to construct some functional. Consider summing
+up the coefficients of the solutions to the Poisson equation
 
 ```python
 # Construct functional 
@@ -135,7 +122,8 @@ dJdg = g.grad
 Install dependencies
 
 ```bash
-conda env create -f environment.yml
+conda env create -n torch-fenics -f environment.yml
+conda activate torch-fenics
 ```
 
 Install package in editable mode
