@@ -4,13 +4,12 @@ import torch
 from fenics import *
 from fenics_adjoint import *
 
-from torch_fenics import FEniCSModel, FEniCSModule
-
+import torch_fenics
 
 # Declare the FEniCS model corresponding to solving the Poisson equation
 # with variable source term and boundary value
-class Poisson(FEniCSModel):
-    # Construct variables which can be reused for each forward pass in the constructor
+class Poisson(torch_fenics.FEniCSModule):
+    # Construct variables which can be reused in the constructor
     def __init__(self):
         # Call super constructor
         super(Poisson, self).__init__()
@@ -26,7 +25,7 @@ class Poisson(FEniCSModel):
         # Construct bilinear form
         self.a = inner(grad(u), grad(self.v)) * dx
 
-    def forward(self, f, g):
+    def solve(self, f, g):
         # Construct linear form
         L = f * self.v * dx
 
@@ -46,11 +45,8 @@ class Poisson(FEniCSModel):
 
 
 if __name__ == '__main__':
-    # Instantiate the FEniCS model
+    # Construct the FEniCS model
     poisson = Poisson()
-
-    # Create the PyTorch module
-    poisson_module = FEniCSModule(poisson)
 
     # Create N sets of input
     N = 10
@@ -58,7 +54,7 @@ if __name__ == '__main__':
     g = torch.rand(N, 1, requires_grad=True, dtype=torch.float64)
 
     # Solve the Poisson equation N times
-    u = poisson_module(f, g)
+    u = poisson(f, g)
 
     # Construct functional
     J = u.sum()

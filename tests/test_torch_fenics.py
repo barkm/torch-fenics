@@ -6,16 +6,16 @@ from fenics_adjoint import *
 import torch
 import numpy as np
 
-from torch_fenics import FEniCSModule, FEniCSModel
+import torch_fenics
 
 
-class Squares(FEniCSModel):
+class Squares(torch_fenics.FEniCSModule):
     def __init__(self):
         super(Squares, self).__init__()
         mesh = IntervalMesh(4, 0, 1)
         self.V = FunctionSpace(mesh, 'DG', 0)
 
-    def forward(self, f1, f2):
+    def solve(self, f1, f2):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -31,13 +31,13 @@ class Squares(FEniCSModel):
         return Function(self.V), Function(self.V)
 
 
-class Poisson(FEniCSModel):
+class Poisson(torch_fenics.FEniCSModule):
     def __init__(self):
         super(Poisson, self).__init__()
         mesh = UnitSquareMesh(10, 10)
         self.V = FunctionSpace(mesh, 'P', 1)
 
-    def forward(self, f, g):
+    def solve(self, f, g):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -55,14 +55,14 @@ class Poisson(FEniCSModel):
         return Constant(0), Constant(0)
 
 
-class DoublePoisson(FEniCSModel):
+class DoublePoisson(torch_fenics.FEniCSModule):
     def __init__(self):
         super(DoublePoisson, self).__init__()
         mesh = UnitIntervalMesh(10)
         self.V = FunctionSpace(mesh, 'P', 1)
         self.bc = DirichletBC(self.V, Constant(0), 'on_boundary')
 
-    def forward(self, f1, f2):
+    def solve(self, f1, f2):
         u = TrialFunction(self.V)
         v = TestFunction(self.V)
 
@@ -82,7 +82,7 @@ class DoublePoisson(FEniCSModel):
         return Constant(0), Constant(0)
 
 
-class Stokes(FEniCSModel):
+class Stokes(torch_fenics.FEniCSModule):
     def __init__(self):
         super(Stokes, self).__init__()
         mesh = UnitSquareMesh(3, 3)
@@ -109,7 +109,7 @@ class Stokes(FEniCSModel):
     def input_templates(self):
         return Constant((0, 0))
 
-    def forward(self, f):
+    def solve(self, f):
         u, p = TrialFunctions(self.W)
         v, q = TestFunctions(self.W)
         a = (inner(grad(u), grad(v)) - div(v) * p + q * div(u)) * dx
@@ -138,52 +138,49 @@ def test_squares():
     f2 = f2[:,rank::size]
 
     squares = Squares()
-    fenics = FEniCSModule(squares)
 
-    assert np.all((fenics(f1, f2) == f1**2 * f2**2).detach().numpy())
-    assert torch.autograd.gradcheck(fenics, (f1, f2))
+    assert np.all((squares(f1, f2) == f1**2 * f2**2).detach().numpy())
+    assert torch.autograd.gradcheck(squares, (f1, f2))
 
 
 @pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_poisson():
     f = torch.tensor([[1.0]], requires_grad=True).double()
     g = torch.tensor([[0.0]], requires_grad=True).double()
-    fenics = FEniCSModule(Poisson())
-    assert torch.autograd.gradcheck(fenics, (f, g))
+    poisson = Poisson()
+    assert torch.autograd.gradcheck(poisson, (f, g))
 
 
 @pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_doublepoisson():
     f1 = torch.tensor([[1.0]], requires_grad=True).double()
     f2 = torch.tensor([[2.0]], requires_grad=True).double()
-    fenics = FEniCSModule(DoublePoisson())
-    assert torch.autograd.gradcheck(fenics, (f1, f2))
+    double_poisson = DoublePoisson()
+    assert torch.autograd.gradcheck(double_poisson, (f1, f2))
 
 
 @pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_stokes():
     f = torch.tensor([[1.0, 1.0]], requires_grad=True).double()
-    fenics = FEniCSModule(Stokes())
-    assert torch.autograd.gradcheck(fenics, (f,))
+    stokes = Stokes()
+    assert torch.autograd.gradcheck(stokes, (f,))
 
 
 @pytest.mark.skipif(MPI.comm_world.Get_size() > 1, reason='Running with MPI')
 def test_input_type():
     f = np.array([[1.0]])
     g = np.array([[0.0]])
-    fenics = FEniCSModule(Poisson())
-    fenics(f, g)
+    poisson = Poisson()
+    poisson(f, g)
     with pytest.raises(TypeError):
         f = np.array([[1.0]], dtype=np.float32)
         g = np.array([[0.0]], dtype=np.float32)
-        fenics(f, g)
+        poisson(f, g)
 
     f = torch.tensor([[1.0]]).double()
     g = torch.tensor([[0.0]]).double()
-    fenics = FEniCSModule(Poisson())
-    fenics(f, g)
+    poisson(f, g)
     with pytest.raises(TypeError):
         f = torch.tensor([[1.0]]).float()
         g = torch.tensor([[0.0]]).float()
-        fenics = FEniCSModule(Poisson())
-        fenics(f, g)
+        poisson(f, g)

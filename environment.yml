@@ -1,4 +1,3 @@
-name: torch-fenics
 channels:
     - conda-forge
     - pytorch
