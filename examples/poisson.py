@@ -40,7 +40,7 @@ class Poisson(torch_fenics.FEniCSModule):
         return u
 
     def input_templates(self):
-        # Declare templates for the inputs to Poisson.forward
+        # Declare templates for the inputs to Poisson.solve
         return Constant(0), Constant(0)
 
 
