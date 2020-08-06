@@ -8,7 +8,7 @@ The `torch-fenics` package enables models defined in [FEniCS](https://fenicsproj
 [Install FEniCS](https://fenicsproject.org/download/) and run
 
 ```bash
-pip install git+https://github.com/pbarkm/torch-fenics.git@master
+pip install git+https://github.com/barkm/torch-fenics.git@master
 ```
 
 A clean install of the package and its dependencies can for example be done with [Conda](https://conda.io/docs/)
@@ -17,7 +17,7 @@ A clean install of the package and its dependencies can for example be done with
 conda create --name torch-fenics
 conda activate torch-fenics
 conda install -c conda-forge fenics
-pip install git+https://github.com/pbarkm/torch-fenics.git@master
+pip install git+https://github.com/barkm/torch-fenics.git@master
 ```
 
 ## Details
