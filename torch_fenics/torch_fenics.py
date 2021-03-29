@@ -27,20 +27,20 @@ class FEniCSFunction(torch.autograd.Function):
         expected_nargs = len(fenics_solver.fenics_input_templates())
         if n_args != expected_nargs:
             raise ValueError(f'Wrong number of arguments to {fenics_solver}.'
-                             ' Expected {expected_nargs} got {n_args}.')
+                             f' Expected {expected_nargs} got {n_args}.')
 
         # Check that each input argument has correct dimensions
         for i, (arg, template) in enumerate(zip(args, fenics_solver.numpy_input_templates())):
             if arg.shape != template.shape:
                 raise ValueError(f'Expected input shape {template.shape} for input'
-                                 ' {i} but got {arg.shape}.')
+                                 f' {i} but got {arg.shape}.')
 
         # Check that the inputs are of double precision
         for i, arg in enumerate(args):
             if (isinstance(arg, np.ndarray) and arg.dtype != np.float64) or \
                (torch.is_tensor(arg) and arg.dtype != torch.float64):
                 raise TypeError(f'All inputs must be type {torch.float64},'
-                                ' but got {arg.dtype} for input {i}.')
+                                f' but got {arg.dtype} for input {i}.')
 
         # Convert input tensors to corresponding FEniCS variables
         fenics_inputs = []
